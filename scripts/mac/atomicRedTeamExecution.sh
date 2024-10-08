@@ -23,18 +23,18 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Full paths to binaries
-POWERSHELL_BIN="/usr/local/bin/pwsh"
-ATOMIC_REPO="/opt/atomic-red-team"
-
-# Ensure PowerShell is installed
-if ! command_exists pwsh; then
+# Full path to PowerShell
+if command_exists /opt/homebrew/bin/pwsh; then
+    POWERSHELL_BIN="/opt/homebrew/bin/pwsh"  # For Apple Silicon Macs
+elif command_exists /usr/local/bin/pwsh; then
+    POWERSHELL_BIN="/usr/local/bin/pwsh"  # For Intel Macs
+else
     echo "PowerShell is not installed. Exiting."
     exit 1
 fi
 
 # Ensure Atomic Red Team repo exists
-if [ ! -d "$ATOMIC_REPO" ]; then
+if [ ! -d "/opt/atomic-red-team" ]; then
     echo "Atomic Red Team repository not found. Exiting."
     exit 1
 fi

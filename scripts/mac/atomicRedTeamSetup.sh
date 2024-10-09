@@ -46,7 +46,7 @@ fi
 # Install Invoke-AtomicRedTeam PowerShell module
 if ! pwsh -Command "Get-Module -ListAvailable -Name Invoke-AtomicRedTeam" >/dev/null 2>&1; then
     echo "Installing Atomic Test Harness for PowerShell (Invoke-AtomicRedTeam)..."
-    pwsh -Command "& {Install-Module -Name Invoke-AtomicRedTeam -Force -Scope CurrentUser}"
+    pwsh -Command "& {Install-Module -Name Invoke-AtomicRedTeam -Force -Scope AllUsers}"
 else
     echo "Invoke-AtomicRedTeam PowerShell module is already installed."
 fi

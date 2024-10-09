@@ -3,53 +3,38 @@
 # Exit script if any command fails
 set -e
 
-# Variables
-LOG_DIR="/opt/art/logs"
-ART_REPO="/opt/atomic-red-team"
-
-# Add Homebrew to the PATH
-if [ -d "/opt/homebrew/bin" ]; then
-    export PATH="/opt/homebrew/bin:$PATH"  # For Apple Silicon (M1/M2) Macs
-elif [ -d "/usr/local/bin" ]; then
-    export PATH="/usr/local/bin:$PATH"  # For Intel Macs
-fi
-
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Ensure Homebrew is installed
-if ! command_exists brew; then
+# Check if Homebrew is installed by looking in the common paths
+if [ -x "/opt/homebrew/bin/brew" ]; then
+    HOMEBREW_BIN="/opt/homebrew/bin/brew"
+elif [ -x "/usr/local/bin/brew" ]; then
+    HOMEBREW_BIN="/usr/local/bin/brew"
+else
     echo "Homebrew is not installed. Please install Homebrew before running this script."
     exit 1
-else
-    echo "Homebrew is installed."
 fi
 
-# Install PowerShell using Homebrew
+echo "Homebrew is installed at $HOMEBREW_BIN"
+
+# Install PowerShell using Homebrew if not already installed
 if ! command_exists pwsh; then
     echo "Installing PowerShell..."
-    brew install --cask powershell
+    $HOMEBREW_BIN install --cask powershell
 else
     echo "PowerShell is already installed."
 fi
 
-# Clone Atomic Red Team repository if it doesn't exist
-if [ ! -d "$ART_REPO" ]; then
-    echo "Cloning Atomic Red Team repository..."
-    git clone https://github.com/redcanaryco/atomic-red-team.git "$ART_REPO"
-else
-    echo "Atomic Red Team repository already exists."
-fi
+# Variables
+LOG_DIR="/opt/art/logs"
+ART_REPO="/opt/atomic-red-team"
 
-# Install Invoke-AtomicRedTeam PowerShell module
-if ! pwsh -Command "Get-Module -ListAvailable -Name Invoke-AtomicRedTeam" >/dev/null 2>&1; then
-    echo "Installing Atomic Test Harness for PowerShell (Invoke-AtomicRedTeam)..."
-    pwsh -Command "& {Install-Module -Name Invoke-AtomicRedTeam -Force -Scope AllUsers}"
-else
-    echo "Invoke-AtomicRedTeam PowerShell module is already installed."
-fi
+# Install Atomic Red Team using the official script with the specified InstallPath
+echo "Installing Atomic Red Team using the official script from the repository..."
+pwsh -Command "IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -getAtomics -InstallPath '$ART_REPO' -Force"
 
 # Set up log directory for test outputs
 if [ ! -d "$LOG_DIR" ]; then

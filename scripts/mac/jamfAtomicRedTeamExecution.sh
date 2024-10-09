@@ -15,9 +15,6 @@ WEBHOOK_URL="${5:-$DEFAULT_WEBHOOK_URL}"
 # Directory to store log files
 LOG_DIR="/opt/art/logs"
 
-# Path to the Atomic Red Team PowerShell module
-ART_MODULE="/opt/atomic-red-team/Invoke-AtomicRedTeam"
-
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -55,7 +52,7 @@ for TEST in "${TEST_ARRAY[@]}"; do
     
     # Run the test and log it to a JSON file
     $POWERSHELL_BIN -Command "& {
-        Import-Module '$ART_MODULE' -Force;
+        Import-Module 'Invoke-AtomicRedTeam' -Force;
         Invoke-AtomicTest $TEST -LoggingModule 'Attire-ExecutionLogger' -ExecutionLogPath '$LOG_FILE';
     }"
 

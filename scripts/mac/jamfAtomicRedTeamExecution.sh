@@ -53,7 +53,7 @@ for TEST in "${TEST_ARRAY[@]}"; do
     # Run the test and log it to a JSON file
     $POWERSHELL_BIN -Command "& {
         Import-Module 'Invoke-AtomicRedTeam' -Force;
-        Invoke-AtomicTest $TEST -LoggingModule 'Attire-ExecutionLogger' -ExecutionLogPath '$LOG_FILE';
+        Invoke-AtomicTest $TEST -PathToAtomicsFolder /opt/atomic-red-team/atomics -LoggingModule 'Attire-ExecutionLogger' -ExecutionLogPath '$LOG_FILE';
     }"
 
     # Check if log file exists and upload to webhook

@@ -21,6 +21,12 @@ if (-not (Get-Command "git" -ErrorAction SilentlyContinue)) {
 # Set Execution Policy to allow the script to run if required
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
+# Install NuGet provider if required
+if (-not (Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
+    Write-Output "NuGet provider is not installed. Installing NuGet provider..."
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope AllUsers
+}
+
 # Install Atomic Red Team using repository instructions
 Write-Output "Installing Atomic Red Team..."
 IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing);

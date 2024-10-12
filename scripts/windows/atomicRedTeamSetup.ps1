@@ -2,8 +2,7 @@
 $ErrorActionPreference = "Stop"
 
 # Variables
-$ARTRepoPath = "C:\AtomicRedTeam"
-$ModulePath = "$ARTRepoPath\Invoke-AtomicRedTeam"
+$InstallPath = "C:\AtomicRedTeam"
 
 # Check if Git is installed, if not install Git
 if (-not (Get-Command "git" -ErrorAction SilentlyContinue)) {
@@ -19,24 +18,13 @@ if (-not (Get-Command "git" -ErrorAction SilentlyContinue)) {
     Write-Output "Git is already installed."
 }
 
-# Clone Atomic Red Team repository if it doesn't exist
-if (-not (Test-Path $ARTRepoPath)) {
-    Write-Output "Cloning Atomic Red Team repository to $ARTRepoPath..."
-    git clone https://github.com/redcanaryco/atomic-red-team.git $ARTRepoPath
-} else {
-    Write-Output "Atomic Red Team repository already exists at $ARTRepoPath."
-}
-
-# Install PowerShell module Invoke-AtomicRedTeam if not already installed
-if (-not (Get-Module -ListAvailable -Name "Invoke-AtomicRedTeam")) {
-    Write-Output "Installing Invoke-AtomicRedTeam PowerShell module..."
-    Install-Module -Name Invoke-AtomicRedTeam -Force -Scope AllUsers
-} else {
-    Write-Output "Invoke-AtomicRedTeam PowerShell module is already installed."
-}
-
 # Set Execution Policy to allow the script to run if required
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
+# Install Atomic Red Team using repository instructions
+Write-Output "Installing Atomic Red Team..."
+IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing);
+Install-AtomicRedTeam -getAtomics -Force -InstallPath $InstallPath
+
 # Verification
-Write-Output "Installation completed. Atomic Red Team is installed at $ARTRepoPath."
+Write-Output "Installation completed. Atomic Red Team is installed at $InstallPath."

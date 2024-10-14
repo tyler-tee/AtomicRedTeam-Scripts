@@ -69,6 +69,10 @@ for TEST in "${TEST_ARRAY[@]}"; do
     else
         echo "Log file $LOG_FILE does not exist, skipping upload."
     fi
+
+    # Run cleanup after the test
+    echo "Running cleanup for Atomic Test: $TEST"
+    $POWERSHELL_BIN -Command "Invoke-AtomicTest $TEST -Cleanup;"
 done
 
 echo "Atomic Red Team tests completed and logs uploaded."

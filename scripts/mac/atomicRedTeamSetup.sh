@@ -34,7 +34,7 @@ ART_REPO="/opt/atomic-red-team"
 
 # Install Atomic Red Team using the official script with the specified InstallPath
 echo "Installing Atomic Red Team using the official script from the repository..."
-pwsh -Command "IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -getAtomics -InstallPath '$ART_REPO' -Force"
+pwsh -Command "Install-Module -Name invoke-atomicredteam,powershell-yaml -Scope AllUsers; Install-AtomicRedTeam -getAtomics -InstallPath '$ART_REPO' -Force"
 
 # Set up log directory for test outputs
 if [ ! -d "$LOG_DIR" ]; then

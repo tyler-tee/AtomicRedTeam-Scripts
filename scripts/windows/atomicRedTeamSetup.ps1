@@ -29,7 +29,7 @@ if (-not (Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
 
 # Install Atomic Red Team using repository instructions
 Write-Output "Installing Atomic Red Team..."
-Invoke-Expression (Invoke-WebRequest 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing);
+Install-Module -Name invoke-atomicredteam,powershell-yaml -Scope AllUsers;
 Install-AtomicRedTeam -getAtomics -Force -InstallPath $InstallPath
 
 # Verification

@@ -3,7 +3,6 @@
 Multiplatform scripts used to orchestrate the setup and execution of Atomic Red Team tests across various environments. This repository provides scripts to facilitate and streamline the deployment, execution, and cleanup of Atomic Red Team tests, helping security professionals simulate and test adversarial techniques on different platforms.
 
 ## Table of Contents
-- [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)

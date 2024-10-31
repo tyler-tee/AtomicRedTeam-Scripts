@@ -1,56 +1,55 @@
-# Exit if any command fails
+# Exit script if any command fails
 $ErrorActionPreference = "Stop"
 
 # Variables
-$InstallPath = "C:\AtomicRedTeam"
-$LogDir = "C:\AtomicRedTeam\Logs"
+$LOG_DIR = "C:\AtomicRedTeam\Logs"
+$ART_MODULE_PATH = "C:\AtomicRedTeam\Invoke-AtomicRedTeam"
 
-# Function to check if a command exists
-function Command-Exists {
-    param ($command)
-    try {
-        Get-Command $command -ErrorAction Stop | Out-Null
-        return $true
-    } catch {
-        return $false
+# Ensure the Atomic Red Team module is installed
+if (-not (Get-Module -ListAvailable -Name Invoke-AtomicRedTeam)) {
+    Write-Output "Invoke-AtomicRedTeam PowerShell module is not installed. Please install it before running this script."
+    exit 1
+}
+
+# Ensure log directory exists
+if (-not (Test-Path $LOG_DIR)) {
+    New-Item -ItemType Directory -Path $LOG_DIR
+}
+
+# List of Atomic Red Team tests to run (example)
+$tests_to_run = "T1003", "T1059.001"
+
+# Run each test and log output
+foreach ($test in $tests_to_run) {
+    $log_file = "$LOG_DIR\$test.json"
+    Write-Output "Running Atomic Test: $test and logging to $log_file"
+    
+    # Execute the test and log the output
+    Invoke-AtomicTest $test -LoggingModule 'Invoke-AtomicLogger' -ExecutionLogPath $log_file
+
+    # Check if log file was created
+    if (Test-Path $log_file) {
+        Write-Output "Test log saved to $log_file"
+    } else {
+        Write-Output "Test log for $test was not created."
     }
 }
 
-# Check if Git is installed, if not, install Git
-if (-not (Command-Exists "git")) {
-    Write-Output "Git is not installed. Installing Git..."
+# Check Windows Defender logs for any alerts
+Write-Output "Checking Windows Defender logs for any detections..."
 
-    # Download Git installer
-    $gitInstallerPath = "$env:TEMP\Git-Installer.exe"
-    Invoke-WebRequest -Uri "https://github.com/git-for-windows/git/releases/download/v2.42.0.windows.1/Git-2.42.0-64-bit.exe" -OutFile $gitInstallerPath
+# Search Windows Defender event logs for detections
+$defender_logs = Get-WinEvent -LogName "Microsoft-Windows-Windows Defender/Operational" | 
+    Where-Object { $_.Message -match "threat" -or $_.Message -match "detected" }
 
-    # Run Git installer silently
-    Start-Process -FilePath $gitInstallerPath -ArgumentList "/SILENT" -Wait
+# Display Defender log detections
+if ($defender_logs) {
+    Write-Output "Windows Defender detected the following threats:"
+    foreach ($log in $defender_logs) {
+        Write-Output $log.Message
+    }
 } else {
-    Write-Output "Git is already installed."
+    Write-Output "No threats detected by Windows Defender."
 }
 
-# Set Execution Policy to allow the script to run if required
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-# Install NuGet provider if required
-if (-not (Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
-    Write-Output "NuGet provider is not installed. Installing NuGet provider..."
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope AllUsers
-}
-
-# Install Atomic Red Team using repository instructions
-Write-Output "Installing Atomic Red Team..."
-Install-Module -Name invoke-atomicredteam,powershell-yaml -Scope AllUsers;
-Install-AtomicRedTeam -getAtomics -Force -InstallPath $InstallPath
-
-# Ensure log directory exists
-if (-not (Test-Path -Path $LogDir)) {
-    Write-Output "Creating log directory at $LogDir"
-    New-Item -Path $LogDir -ItemType Directory | Out-Null
-} else {
-    Write-Output "Log directory already exists at $LogDir"
-}
-
-# Verification
-Write-Output "Installation completed. Atomic Red Team is installed at $InstallPath."
+Write-Output "Atomic Red Team tests completed."

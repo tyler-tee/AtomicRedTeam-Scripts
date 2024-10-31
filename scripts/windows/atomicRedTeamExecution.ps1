@@ -1,11 +1,17 @@
 # Exit script if any command fails
 $ErrorActionPreference = "Stop"
 
+# Parameters
+param (
+    [string]$TestsToRun = "T1003,T1059.001",
+    [string]$WebhookURL = "https://your-webhook-url.com"
+)
+
 # Variables
 $LOG_DIR = "C:\AtomicRedTeam\Logs"
 $ART_MODULE_PATH = "C:\AtomicRedTeam\Invoke-AtomicRedTeam"
 
-# Ensure the Atomic Red Team module is installed
+# Ensure the Invoke-AtomicRedTeam PowerShell module is installed
 if (-not (Get-Module -ListAvailable -Name Invoke-AtomicRedTeam)) {
     Write-Output "Invoke-AtomicRedTeam PowerShell module is not installed. Please install it before running this script."
     exit 1
@@ -13,26 +19,48 @@ if (-not (Get-Module -ListAvailable -Name Invoke-AtomicRedTeam)) {
 
 # Ensure log directory exists
 if (-not (Test-Path $LOG_DIR)) {
-    New-Item -ItemType Directory -Path $LOG_DIR
+    New-Item -ItemType Directory -Path $LOG_DIR | Out-Null
 }
 
-# List of Atomic Red Team tests to run (example)
-$tests_to_run = "T1003", "T1059.001"
+# Convert comma-delimited list into array
+$TestsArray = $TestsToRun -split ','
+
+# Function to upload logs to webhook
+function Upload-LogToWebhook {
+    param (
+        [string]$LogFile,
+        [string]$WebhookURL
+    )
+
+    if (Test-Path $LogFile) {
+        $jsonContent = Get-Content -Path $LogFile -Raw
+        $response = Invoke-RestMethod -Uri $WebhookURL -Method Post -Body $jsonContent -ContentType "application/json"
+        if ($response.StatusCode -eq 200) {
+            Write-Output "Successfully uploaded $LogFile to $WebhookURL"
+        } else {
+            Write-Output "Failed to upload $LogFile to webhook."
+        }
+    } else {
+        Write-Output "Log file $LogFile does not exist, skipping upload."
+    }
+}
 
 # Run each test and log output
-foreach ($test in $tests_to_run) {
+foreach ($test in $TestsArray) {
     $log_file = "$LOG_DIR\$test.json"
     Write-Output "Running Atomic Test: $test and logging to $log_file"
     
     # Execute the test and log the output
     Invoke-AtomicTest $test -LoggingModule 'Invoke-AtomicLogger' -ExecutionLogPath $log_file
 
-    # Check if log file was created
-    if (Test-Path $log_file) {
-        Write-Output "Test log saved to $log_file"
-    } else {
-        Write-Output "Test log for $test was not created."
+    # Upload log to webhook if available
+    if ($WebhookURL) {
+        Upload-LogToWebhook -LogFile $log_file -WebhookURL $WebhookURL
     }
+
+    # Cleanup after the test
+    Write-Output "Running cleanup for Atomic Test: $test"
+    Invoke-AtomicTest $test -Cleanup
 }
 
 # Check Windows Defender logs for any alerts

@@ -6,7 +6,7 @@ set -e
 # Default tests to run (if none provided through Parameter 4)
 DEFAULT_TESTS="T1003,T1059.001"
 # Default webhook URL (if none provided through Parameter 5)
-DEFAULT_WEBHOOK_URL="https://your-default-webhook-url.com"
+DEFAULT_WEBHOOK_URL="https://your-webhook-url.com"
 
 # Jamf Pro parameters (Parameter 4 for tests, Parameter 5 for webhook URL)
 TESTS_TO_RUN="${4:-$DEFAULT_TESTS}"
